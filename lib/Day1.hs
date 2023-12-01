@@ -8,7 +8,6 @@ import qualified Data.List.Safe as S
 import Data.Maybe (catMaybes)
 import qualified Data.Text as T
 import Data.List (elemIndex)
-import Data.Bifunctor
 
 minIndex, maxIndex :: Ord a => [a] -> Maybe Int
 minIndex xs = elemIndex (minimum xs) xs
