@@ -15,10 +15,7 @@ minIndex xs = elemIndex (minimum xs) xs
 maxIndex xs = elemIndex (maximum xs) xs
 
 digits :: [T.Text]
-digits = ["one","two","three","four","five","six","seven","eight","nine"]
-
-digits' :: [T.Text]
-digits' = T.pack <$> show <$> [1..9]
+digits = ["one","two","three","four","five","six","seven","eight","nine"] ++ (T.pack <$> show <$> [1..9])
 
 parse :: String -> [String]
 parse = lines
@@ -31,8 +28,8 @@ extractFromLine' s = do
   let l = (l' `mod` 9) + 1
   pure $ 10 * h + l
   where
-        indices_first = map fst $ flip T.breakOn (T.pack s) <$> (digits ++ digits')
-        indices_last = map fst $ flip T.breakOnEnd (T.pack s) <$> (digits ++ digits')
+        indices_first = fst <$> flip T.breakOn (T.pack s) <$> digits
+        indices_last = fst <$> flip T.breakOnEnd (T.pack s) <$> digits
         firstIndex, lastIndex :: Maybe Int
         (first, firstIndex) = (minimum indices_first, minIndex indices_first)
         (last, lastIndex) = (maximum indices_last, maxIndex indices_last)
