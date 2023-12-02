@@ -15,4 +15,4 @@ main = do
   let day = (read day_str :: Int) - 1
   let part = (read part_str :: Int) - 1
   contents <- T.readFile file
-  timeIt $ putStrLn $ ($(days 1) !! (2 * day + part)) contents
+  timeIt $ putStrLn $ ($(days 2) !! (day + part * 2)) contents
