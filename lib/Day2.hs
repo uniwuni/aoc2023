@@ -35,11 +35,11 @@ minimumNeeded :: [Set] -> Set
 minimumNeeded xs = Set $ foldr folder [] $ concatMap unset xs
   where
     folder :: Pair -> [Pair] -> [Pair]
-    folder p@(Pair color number) ps = case lookupPair color ps of
+    folder p@(Pair c n) ps = case lookupPair c ps of
                           Nothing -> p:ps
-                          Just m -> if number > m then map f ps else ps
-                            where f p'@(Pair color' number') | color == color' = Pair color number
-                                                             | otherwise = p'
+                          Just m -> if n > m then map f ps else ps
+                            where f p'@(Pair c' _) | c == c' = Pair c n
+                                                   | otherwise = p'
 power :: Set -> Int
 power = product . map number . unset
 
