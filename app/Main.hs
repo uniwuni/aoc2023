@@ -3,7 +3,6 @@
 module Main where
 import System.Environment
 import System.TimeIt
-import qualified Data.Text as T
 import qualified Data.Text.IO as T
 import Day1
 import Day2

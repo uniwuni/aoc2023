@@ -1,11 +1,11 @@
 -- | Day 2
 
-{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE OverloadedStrings, Safe #-}
 
 module Day2 where
 import qualified Data.Text as T
 import Data.Text (Text)
-import Data.Maybe (catMaybes)
+import Data.Maybe (mapMaybe)
 
 data Pair = Pair {color :: Text, number :: Int} deriving (Eq, Show)
 newtype Set = Set {unset :: [Pair]} deriving (Eq, Show)
@@ -14,9 +14,9 @@ lookupPair :: Text -> [Pair] -> Maybe Int
 lookupPair t xs = lookup t $ (\x -> (color x, number x)) <$> xs
 
 parse :: Text -> [[Set]]
-parse t = (map (Set . catMaybes . map parseEntry)) <$> l
-  where l = map (T.words <$>) <$> (T.splitOn "," <$>) <$>
-              tail <$> T.split (`elem` (";:" :: String)) <$> T.lines t
+parse t = map (Set . mapMaybe parseEntry) <$> l
+  where l = (map (T.words <$>) . (T.splitOn "," <$>) <$>
+              tail) . T.split (`elem` (";:" :: String)) <$> T.lines t
         parseEntry :: [Text] -> Maybe Pair
         parseEntry [a,b] = Just $ Pair b $ read $ T.unpack a
         parseEntry _ = Nothing

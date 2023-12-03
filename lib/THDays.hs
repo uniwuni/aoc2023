@@ -1,11 +1,11 @@
 -- | Template haskell machinery for days
-
+{-# LANGUAGE Safe #-}
 module THDays (days) where
 import Language.Haskell.TH
 
 strings :: Int -> [String]
 strings n = ((++"part1") <$> prefixes) ++ ((++"part2") <$> prefixes)
-  where prefixes = ("day"++) <$> show <$> [1..n]
+  where prefixes = ("day"++) . show <$> [1..n]
 
 days :: Int -> ExpQ
 days n = do

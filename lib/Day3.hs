@@ -3,7 +3,6 @@
 {-# LANGUAGE TupleSections #-}
 module Day3 where
 import Data.Char (isNumber)
-import Data.Maybe (catMaybes)
 import qualified Data.Text as T
 import Data.Text (Text)
 import Data.List (elemIndex)
@@ -11,44 +10,50 @@ import Control.Monad
 import qualified Data.Vector as V
 import Data.Vector.Split as S
 
+uncurry3 f (x,y,z) = f x y z
+
 vecLines :: Text -> V.Vector (V.Vector Char)
-vecLines = V.fromList . map V.fromList . map T.unpack . T.lines
+vecLines = V.fromList . map (V.fromList . T.unpack) . T.lines
 
 getNumberIndices :: V.Vector (V.Vector Char) -> V.Vector (V.Vector (Int, Int))
 getNumberIndices x = indexBlocks
   where indicesIndexed :: V.Vector (V.Vector (Int, Int))
         indicesIndexed = V.map (V.indexed . V.findIndices isNumber) x
-        groupedIndices = map (snd <$>) <$> V.groupBy (\(i,a) (j,b) -> j - i == b - a) <$> indicesIndexed
-        indexBlocks = V.fromList <$> map (\x -> (V.head x, V.last x)) <$> groupedIndices
+        groupedIndices = map (snd <$>) . V.groupBy (\(i,a) (j,b) -> j - i == b - a) <$> indicesIndexed
+        indexBlocks = V.fromList . map (\x -> (V.head x, V.last x)) <$> groupedIndices
+
+data NumberBlock = NB { start' :: Int, finish' :: Int, value' :: Int } deriving (Eq, Read, Show)
 
 -- third is integer value
-getNumbers :: V.Vector (V.Vector Char) -> V.Vector (V.Vector (Int, Int, Int))
+getNumbers :: V.Vector (V.Vector Char) -> V.Vector (V.Vector NumberBlock)
 getNumbers v = V.zipWith zipper indexBlocks v
   where indexBlocks :: V.Vector (V.Vector (Int, Int))
         indexBlocks = getNumberIndices v
-        f :: V.Vector Char -> (Int, Int) -> (Int, Int, Int)
-        f v (l,r) = (l,r,read $ V.toList slice)
+        f :: V.Vector Char -> (Int, Int) -> NumberBlock
+        f v (l,r) = NB l r $ read $ V.toList slice
           where slice = V.slice l (r-l+1) v
-        zipper :: V.Vector (Int, Int) -> V.Vector Char -> V.Vector (Int, Int, Int)
+
+        zipper :: V.Vector (Int, Int) -> V.Vector Char -> V.Vector NumberBlock
         zipper x a = V.map (f a) x
 
-getNumbers' :: V.Vector (V.Vector Char) -> V.Vector (Int, (V.Vector (Int, Int, Int)))
+getNumbers' :: V.Vector (V.Vector Char) -> V.Vector (Int, V.Vector NumberBlock)
 getNumbers' = V.indexed . getNumbers
 
+data FullNumberBlock = FNB {line :: Int, start :: Int, finish :: Int, value :: Int} deriving (Eq, Show, Read)
+
 -- line, start, finish, value
-getNumbers'' :: V.Vector (V.Vector Char) -> V.Vector (Int, Int, Int, Int)
+getNumbers'' :: V.Vector (V.Vector Char) -> V.Vector FullNumberBlock
 getNumbers'' = f . getNumbers'
-  where f :: V.Vector (Int, (V.Vector (Int, Int, Int))) -> V.Vector (Int, Int, Int, Int)
-        f v = v >>= (\(n, w) -> (\(x,y,z) -> (n,x,y,z)) <$> w)
+  where f :: V.Vector (Int, V.Vector NumberBlock) -> V.Vector FullNumberBlock
+        f v = v >>= (\(n, w) -> (\(NB s f v) -> FNB n s f v) <$> w)
 
-getValue :: V.Vector (Int, Int, Int, Int) -> (Int, Int) -> Int
-getValue v (line_asterisk, n_asterisk) = case V.toList filtered of
-  [(_,_,_,v1), (_,_,_,v2)] -> v1 * v2
+getValue :: V.Vector FullNumberBlock -> (Int, Int) -> Int
+getValue v (ln, n_asterisk) = case V.toList filtered of
+  [(_,val), (_,val')] -> val * val'
   _ -> 0
-
-  where f :: (Int, Int, Int, Int) -> Bool
-        f (line, start, finish, value) = (line_asterisk, n_asterisk) `elem` getSurroundingCoords line (start, finish)
-        filtered = V.filter f v
+  where filtered = V.filter (((ln, n_asterisk) `elem`) . fst) v2
+        v2 = V.map (\x -> (getSurroundingCoords (line x) (start x, finish x), value x)) $
+               V.filter (\x -> line x >= ln - 1 && line x <= ln + 1) v
 
 
 getSurroundingCoords :: Int -> (Int, Int) -> V.Vector (Int, Int)
@@ -60,13 +65,13 @@ vs !?!? (i,j) = do
   v <- vs V.!? i
   v V.!? j
 
-checkSurroundingCoord :: V.Vector (V.Vector Char) -> Int -> (Int, Int, Int) -> Int
-checkSurroundingCoord v line (l,r,n) = if condition then n else 0
-  where coords = getSurroundingCoords line (l,r)
+checkSurroundingCoord :: V.Vector (V.Vector Char) -> Int -> NumberBlock -> Int
+checkSurroundingCoord v line block = if condition then value' block else 0
+  where coords = getSurroundingCoords line (start' block, finish' block)
         values = V.mapMaybe (v !?!?) coords
         condition = any (`elem` ("#$%&*+-/=@" :: String)) values
 
-checkCoords :: V.Vector (V.Vector Char) -> V.Vector (Int, (V.Vector (Int, Int, Int))) -> Int
+checkCoords :: V.Vector (V.Vector Char) -> V.Vector (Int, V.Vector NumberBlock) -> Int
 checkCoords v = sum . V.map (\(line, ps) -> sum $ V.map (checkSurroundingCoord v line) ps)
 
 getStars ::  V.Vector (V.Vector Char) -> V.Vector (Int, Int)
