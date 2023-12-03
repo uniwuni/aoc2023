@@ -7,6 +7,7 @@ import qualified Data.Text as T
 import qualified Data.Text.IO as T
 import Day1
 import Day2
+import Day3
 import THDays (days)
 
 main :: IO ()
@@ -15,4 +16,4 @@ main = do
   let day = (read day_str :: Int) - 1
   let part = (read part_str :: Int) - 1
   contents <- T.readFile file
-  timeIt $ putStrLn $ ($(days 2) !! (day + part * 2)) contents
+  timeIt $ putStrLn $ ($(days 3) !! (day + part * 3)) contents
