@@ -12,6 +12,7 @@ import Day5
 import Day6
 import Day7
 import Day8
+import Day9
 import THDays (days)
 
 main :: IO ()
@@ -20,4 +21,4 @@ main = do
   let day = (read day_str :: Int) - 1
   let part = (read part_str :: Int) - 1
   contents <- T.readFile file
-  timeIt $ putStrLn $ ($(days 8) !! (day + part * 8)) contents
+  timeIt $ putStrLn $ ($(days 9) !! (day + part * 9)) contents
