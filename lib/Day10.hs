@@ -57,12 +57,13 @@ day10part2 t = show $ length $ filter isIn xys
         loop = map ((\(_,y,_) -> y) . f) $ head $ filter (s `elem`) $ foldr (:) [] <$> scc g
 
         groupedLoop :: [((Float, Float),(Float, Float))]
-        groupedLoop = zip l (tail l) ++ [(last l, head l)]
+        groupedLoop = sortOn (\((_,b),(_,d)) -> - min d b) $ zip l (tail l) ++ [(last l, head l)]
           where l = map (bimap fromIntegral fromIntegral) $ reducePoints loop
 
         {-# INLINE shootRay #-}
-        shootRay (x,y) = filter p groupedLoop
-          where p ((sx,sy),(ex,ey)) = (y < min sy ey) && ((sx <= x && x <= ex) || (ex <= x && x <= sx))
+        shootRay (x,y) = filter p $ takeWhile q groupedLoop
+          where p ((sx,_),(ex,_)) = (sx <= x && x <= ex) || (ex <= x && x <= sx)
+                q ((_,sy),(_,ey)) = y < min sy ey
 
         isIn (x,y) = odd $ length $ shootRay (x + 0.5, y + 0.5)
         xys :: [(Float, Float)]
