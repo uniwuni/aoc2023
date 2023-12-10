@@ -25,11 +25,11 @@ executable aoc2023
     main-is:          Main.hs
 
     -- Modules included in this executable, other than Main.
-    other-modules: Day1, Day2, Day3, Day4, Day5, Day6, Day7, Day8, Day9, THDays
+    other-modules: Day1, Day2, Day3, Day4, Day5, Day6, Day7, Day8, Day9, Day10, THDays
 
     -- LANGUAGE extensions used by modules in this package.
     -- other-extensions:
-    build-depends:    base >=4.15.1.0, template-haskell, listsafe, text, timeit, vector >= 0.13.0.1, vector-split, parallel, containers
+    build-depends:    base >=4.15.1.0, template-haskell, listsafe, text, timeit, vector >= 0.13.0.1, vector-split, parallel, containers, array
     hs-source-dirs:   app, lib
     default-language: Haskell2010
     ghc-options: -Wall -O2 -threaded
