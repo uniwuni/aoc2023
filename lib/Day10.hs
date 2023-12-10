@@ -7,7 +7,7 @@ import Data.List
 import Data.Maybe
 import qualified Data.Text as T
 import Data.Bifunctor
-
+import qualified Data.Set as S
 parse :: Text -> (Vertex, Graph, Vertex -> (Char, (Int, Int), [(Int, Int)]), (Int, Int) -> Maybe Vertex)
 parse t = (fromJust $ vertexFromKey s_pos, graph, nodeFromVertex, vertexFromKey)
   where chs :: [((Int, Int), Char)]
@@ -51,23 +51,27 @@ day10part1 t = show $ (`div` 2) $ length $ head $ filter (s `elem`) $ foldr (:) 
   where (s,g,_,_) = parse t
 
 day10part2 :: Text -> String
-day10part2 t = show $ length $ filter isIn xys
+day10part2 t = show $ S.size $ S.filter isIn xys
   where (s,g,f,_) = parse t
         loop :: [(Int, Int)]
         loop = map ((\(_,y,_) -> y) . f) $ head $ filter (s `elem`) $ foldr (:) [] <$> scc g
 
         groupedLoop :: [((Float, Float),(Float, Float))]
-        groupedLoop = sortOn (\((_,b),(_,d)) -> - min d b) $ zip l (tail l) ++ [(last l, head l)]
+        groupedLoop = sortOn (\((a,b),(_,d)) -> (- min d b, a)) $ map reorder $ zip l (tail l) ++ [(last l, head l)]
           where l = map (bimap fromIntegral fromIntegral) $ reducePoints loop
+                reorder p@((sx,sy),(ex,ey)) | sx <= ex = p
+                                            | otherwise = ((ex,ey),(sx,sy))
 
-        {-# INLINE shootRay #-}
+        loopSet = S.fromList loop
+
         shootRay (x,y) = filter p $ takeWhile q groupedLoop
-          where p ((sx,_),(ex,_)) = (sx <= x && x <= ex) || (ex <= x && x <= sx)
+          where p ((sx,_),(ex,_)) = sx <= x && x <= ex
                 q ((_,sy),(_,ey)) = y < min sy ey
 
-        isIn (x,y) = odd $ length $ shootRay (x + 0.5, y + 0.5)
-        xys :: [(Float, Float)]
-        xys = [(fromIntegral x, fromIntegral y)
-              | y <- [minimum (map fst loop)..maximum (map fst loop)],
-                x <- [minimum (map snd loop)..maximum (map snd loop)],
-                (x,y) `notElem` loop]
+        isIn (x,y) = odd $ length $ shootRay (fromIntegral x + 0.5, fromIntegral y + 0.5)
+        xys :: S.Set (Int, Int)
+        xys = S.fromDistinctAscList [(x, y)
+                                    | x <- [ax..bx],
+                                      y <- [ay..by]] S.\\ loopSet
+        (ay,by) = (minimum (map fst loop), maximum (map fst loop))
+        (ax,bx) = (minimum (map snd loop), maximum (map snd loop))
