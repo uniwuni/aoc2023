@@ -8,6 +8,8 @@ import Data.Maybe
 import qualified Data.Text as T
 import Data.Bifunctor
 import qualified Data.Set as S
+
+
 parse :: Text -> (Vertex, Graph, Vertex -> (Char, (Int, Int), [(Int, Int)]), (Int, Int) -> Maybe Vertex)
 parse t = (fromJust $ vertexFromKey s_pos, graph, nodeFromVertex, vertexFromKey)
   where chs :: [((Int, Int), Char)]
